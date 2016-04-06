@@ -1,0 +1,72 @@
+Time: 1.721 ms
+[
+  {
+    "Plan": {
+      "Node Type": "Aggregate",
+      "Strategy": "Plain",
+      "Startup Cost": 29704.34,
+      "Total Cost": 29704.35,
+      "Plan Rows": 1,
+      "Plan Width": 0,
+      "Actual Startup Time": 385.156,
+      "Actual Total Time": 385.156,
+      "Actual Rows": 1,
+      "Actual Loops": 1,
+      "Output": ["count(*)"],
+      "Shared Hit Blocks": 1,
+      "Shared Read Blocks": 82963,
+      "Shared Dirtied Blocks": 0,
+      "Shared Written Blocks": 19,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0,
+      "I/O Read Time": 0.000,
+      "I/O Write Time": 0.000,
+      "Plans": [
+        {
+          "Node Type": "Index Only Scan",
+          "Parent Relationship": "Outer",
+          "Scan Direction": "Forward",
+          "Index Name": "messages_read_idx",
+          "Relation Name": "messages",
+          "Schema": "public",
+          "Alias": "messages",
+          "Startup Cost": 0.43,
+          "Total Cost": 29218.45,
+          "Plan Rows": 194357,
+          "Plan Width": 0,
+          "Actual Startup Time": 0.092,
+          "Actual Total Time": 366.033,
+          "Actual Rows": 199295,
+          "Actual Loops": 1,
+          "Output": ["read"],
+          "Index Cond": "(messages.read = true)",
+          "Rows Removed by Index Recheck": 0,
+          "Filter": "messages.read",
+          "Rows Removed by Filter": 0,
+          "Heap Fetches": 199295,
+          "Shared Hit Blocks": 1,
+          "Shared Read Blocks": 82963,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 19,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "I/O Read Time": 0.000,
+          "I/O Write Time": 0.000
+        }
+      ]
+    },
+    "Planning Time": 0.312,
+    "Triggers": [
+    ],
+    "Execution Time": 385.223
+  }
+]
+Time: 387.733 ms

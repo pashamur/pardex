@@ -1,0 +1,70 @@
+Time: 4.326 ms
+[
+  {
+    "Plan": {
+      "Node Type": "Limit",
+      "Startup Cost": 0.43,
+      "Total Cost": 161.32,
+      "Plan Rows": 1000,
+      "Plan Width": 39,
+      "Actual Startup Time": 0.075,
+      "Actual Total Time": 4.220,
+      "Actual Rows": 1000,
+      "Actual Loops": 1,
+      "Output": ["id", "message", "read", "created_at", "updated_at", "sender_id", "receiver_id"],
+      "Shared Hit Blocks": 0,
+      "Shared Read Blocks": 390,
+      "Shared Dirtied Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0,
+      "I/O Read Time": 0.000,
+      "I/O Write Time": 0.000,
+      "Plans": [
+        {
+          "Node Type": "Index Scan",
+          "Parent Relationship": "Outer",
+          "Scan Direction": "Forward",
+          "Index Name": "messages_part_read_idx",
+          "Relation Name": "messages_part",
+          "Schema": "public",
+          "Alias": "messages_part",
+          "Startup Cost": 0.43,
+          "Total Cost": 31749.71,
+          "Plan Rows": 197342,
+          "Plan Width": 39,
+          "Actual Startup Time": 0.074,
+          "Actual Total Time": 4.033,
+          "Actual Rows": 1000,
+          "Actual Loops": 1,
+          "Output": ["id", "message", "read", "created_at", "updated_at", "sender_id", "receiver_id"],
+          "Index Cond": "(messages_part.read = true)",
+          "Rows Removed by Index Recheck": 0,
+          "Filter": "messages_part.read",
+          "Rows Removed by Filter": 0,
+          "Shared Hit Blocks": 0,
+          "Shared Read Blocks": 390,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "I/O Read Time": 0.000,
+          "I/O Write Time": 0.000
+        }
+      ]
+    },
+    "Planning Time": 0.575,
+    "Triggers": [
+    ],
+    "Execution Time": 4.374
+  }
+]
+Time: 5.904 ms
