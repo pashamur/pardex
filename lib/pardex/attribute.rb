@@ -4,9 +4,9 @@ module Pardex
   class Attribute
     attr_accessor :name, :stats
 
-    def initialize(stats, rowcount, type)
+    def initialize(stats, rowcount, type, table)
       self.name = stats['attname']
-      self.stats = AttributeStats.new(stats, rowcount, type)
+      self.stats = AttributeStats.new(name, stats, rowcount, type, table)
     end
 
     def is_pardex_candidate?

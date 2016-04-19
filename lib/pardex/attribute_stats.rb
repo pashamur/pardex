@@ -1,9 +1,13 @@
+require 'byebug'
+
 module Pardex
   class AttributeStats
     THRESHOLD = 0.95
-    attr_accessor :null_frac, :most_common_vals, :most_common_freqs, :histogram_bounds, :n_distinct, :rowcount
+    attr_accessor :name, :null_frac, :most_common_vals, :most_common_freqs, :histogram_bounds, :n_distinct, :rowcount, :table
 
-    def initialize(stats, rowcount, type)
+    def initialize(name, stats, rowcount, type, table)
+      self.name = name
+      self.table = table
       self.null_frac = stats['null_frac'].to_f
       self.most_common_vals = stats["most_common_vals"].gsub(/[{}]/,'').split(',') if stats["most_common_vals"]
       self.most_common_freqs = stats["most_common_freqs"].gsub(/[{}]/,'').split(',').map(&:to_f) if stats["most_common_freqs"]
@@ -30,11 +34,18 @@ module Pardex
       if op == '='
         eq_selectivity(val)
       elsif op == '>'
-        raise "NYI #{op}"
+        gt_selectivity(val)
       elsif op == '<'
-        raise "NYI #{op}"
+        lt_selectivity(val)
+      elsif op == '<=' || op == '>='
+        eq_selectivity(val) + (op == '<=' ? lt_selectivity(val) : gt_selectivity(val))
       else
-        raise "Unknown operator #{op}"
+        # Hijack postgres planner to give us estimate
+        esc_val = val.is_a?(String) ? "'#{val}'" : val
+        res = self.table.connection.exec_query("EXPLAIN (FORMAT JSON) SELECT * FROM #{self.table.name} WHERE #{self.table.name}.#{name} #{op} #{esc_val};")
+
+        plan_rows = JSON.parse(res.rows.first.first).first["Plan"]["Plan Rows"]
+        plan_rows.to_f / rowcount
       end
     end
 
@@ -44,6 +55,32 @@ module Pardex
       end
       return 1.0 / n_distinct if n_distinct && n_distinct > 0
       return 1.0 / rowcount if n_distinct && n_distinct < 0
+    end
+
+    def gt_selectivity(val)
+      return 0 if val > histogram_bounds.last
+      return 1 if val < histogram_bounds.first
+
+      1.0 - lt_selectivity(val) - eq_selectivity(val)
+    end
+
+    def lt_selectivity(val)
+      return 0 if val < histogram_bounds.first
+      return 1 if val > histogram_bounds.last
+
+      full = histogram_bounds.select{|b| b < val}.count
+      low, high = [histogram_bounds.reverse.find{|x| x < val}, histogram_bounds.find{|x| x > val}]
+      partial = val.is_a?(Numeric) ? (val - low).to_f / (high - low) : 0
+
+      histogram_selectivity = (full + partial).to_f / histogram_bounds.count
+      # Get select
+      common_selectivity = if most_common_vals
+        most_common_vals.zip(most_common_freqs).reduce(0){|tot, (v, freq)| v > val ? tot + freq : tot}
+      else
+        0
+      end
+
+      histogram_selectivity + common_selectivity
     end
   end
 end
