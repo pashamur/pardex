@@ -31,7 +31,9 @@ module Pardex
 
     #
     def selectivity(op, val)
-      if op == '='
+      if op == "IS" && val == "NULL"
+        return self.null_frac
+      elsif op == '='
         eq_selectivity(val)
       elsif op == '>'
         gt_selectivity(val)
