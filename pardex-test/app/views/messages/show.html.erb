@@ -1,0 +1,16 @@
+<table>
+  <tbody>
+    <tr><td>ID</td><td><%= @message.id -%></td></tr>
+    <tr><td>Message</td><td><%= @message.message -%></td></tr>
+    <tr><td>Read</td><td><%= @message.read -%></td></tr>
+    <tr><td>Created At</td><td><%= @message.created_at -%></td></tr>
+    <tr><td>Updated At</td><td><%= @message.updated_at -%></td></tr>
+    <tr><td>Sender Id</td><td><%= @message.sender_id -%></td></tr>
+    <tr><td>Receiver Id</td><td><%= @message.receiver_id -%></td></tr>
+  </tbody>
+</table>
+
+<p id="notice"><%= notice %></p>
+
+<%= link_to 'Edit', edit_message_path(@message) %> |
+<%= link_to 'Back', messages_path %>

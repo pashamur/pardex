@@ -1,0 +1,39 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Messages</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Message</th>
+      <th>Read</th>
+      <th>Created At</th>
+      <th>Updated At</th>
+      <th>Sender Id</th>
+      <th>Receiver Id</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @messages.each do |message| %>
+      <tr>
+        <td><%= message.id -%></td>
+        <td><%= message.message -%></td>
+        <td><%= message.read -%></td>
+        <td><%= message.created_at -%></td>
+        <td><%= message.updated_at -%></td>
+        <td><%= message.sender_id -%></td>
+        <td><%= message.receiver_id -%></td>
+        <td><%= link_to 'Show', message %></td>
+        <td><%= link_to 'Edit', edit_message_path(message) %></td>
+        <td><%= link_to 'Destroy', message, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+<%= will_paginate @messages -%>
+
+<%= link_to 'New Message', new_message_path %>

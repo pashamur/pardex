@@ -13,6 +13,7 @@ default: &default
 
 development:
   <<: *default
+  prepared_statements: false
   database: pardex_test_dev
 
 # Warning: The database defined as "test" will be erased and

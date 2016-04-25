@@ -10,6 +10,7 @@ QUERIES = [
   "SELECT count(*) FROM messages WHERE read IS TRUE",
   "SELECT count(*) FROM messages WHERE read IS TRUE",
   "SELECT count(*) FROM messages WHERE read = 't'",
+  "SELECT count(*) FROM messages WHERE read IS FALSE",
 ].freeze
 
 # Desired output:
@@ -40,6 +41,7 @@ module Pardex
       add_query(query)
     end
 
+    self.suggest_indexes
     byebug
   end
 
@@ -51,11 +53,13 @@ module Pardex
     conditions = parsed.simple_where_conditions
     conditions.each do |cond|
       if parsed.tables.length == 1
-        @@conditions[parsed.tables.first][cond] ||= 0
-        @@conditions[parsed.tables.first][cond] += 1
+        table = parsed.tables.first
+        @@conditions[table][cond] ||= [0, @@tables[table].selectivity(cond[0], cond[1], cond[2])]
+        @@conditions[table][cond][0] += 1
       else # more than 1 table
-        @@conditions[get_table(cond, parsed.tables)][cond] ||= 0
-        @@conditions[get_table(cond, parsed.tables)][cond] += 1
+        table = get_table(cond, parsed.tables)
+        @@conditions[table][cond] ||= [0, @@tables[table].selectivity(cond[0], cond[1], cond[2])]
+        @@conditions[table][cond][0] += 1
       end
     end
   end
@@ -71,6 +75,16 @@ module Pardex
       unless @@tables[table]
         @@tables[table] = Pardex::Table.new(table.classify.constantize)
         @@conditions[table] = Hash.new
+      end
+    end
+  end
+
+  def self.suggest_indexes
+    @@conditions.each do |table_name, table|
+      table.each do |condition, (count, selectivity)|
+        if count > 1 && selectivity < 0.05
+          puts "Suggested Index on #{table_name}.#{condition[0]} WHERE #{condition.join(' ')} (selectivity: #{selectivity.round(3)})"
+        end
       end
     end
   end

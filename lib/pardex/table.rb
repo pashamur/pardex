@@ -24,6 +24,7 @@ module Pardex
     end
 
     def selectivity(attribute, op, val)
+      return 0 unless attributes[attribute]
       attributes[attribute].selectivity(op, val)
     end
 

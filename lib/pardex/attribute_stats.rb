@@ -33,6 +33,8 @@ module Pardex
     def selectivity(op, val)
       if op == "IS" && val == "NULL"
         return self.null_frac
+      elsif op == "IS NOT" && val == "NULL"
+        return 1.0 - self.null_frac
       elsif op == '='
         eq_selectivity(val)
       elsif op == '>'
@@ -43,7 +45,7 @@ module Pardex
         eq_selectivity(val) + (op == '<=' ? lt_selectivity(val) : gt_selectivity(val))
       else
         # Hijack postgres planner to give us estimate
-        esc_val = val.is_a?(String) ? "'#{val}'" : val
+        esc_val = val.is_a?(String) && !(['true','false','null'].include?(val.downcase)) ? "'#{val}'" : val
         res = self.table.connection.exec_query("EXPLAIN (FORMAT JSON) SELECT * FROM #{self.table.name} WHERE #{self.table.name}.#{name} #{op} #{esc_val};")
 
         plan_rows = JSON.parse(res.rows.first.first).first["Plan"]["Plan Rows"]
