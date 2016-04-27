@@ -33,8 +33,13 @@ module Pardex
     def selectivity(op, val)
       if op == "IS" && val == "NULL"
         return self.null_frac
+      elsif op == "IS" && [true, false].include?(val)
+        val ? eq_selectivity('t') : eq_selectivity('f')
       elsif op == "IS NOT" && val == "NULL"
         return 1.0 - self.null_frac
+      elsif op == "IS NOT" && [true, false].include?(val)
+        bool_val = (val ? 'f' : 't')
+        eq_selectivity(bool_val) + self.null_frac
       elsif op == '='
         eq_selectivity(val)
       elsif op == '>'
@@ -54,9 +59,18 @@ module Pardex
     end
 
     def eq_selectivity(val)
+      # Check for boolean queries with 1 or 0
+      if most_common_vals.length < 4 && most_common_vals.include?('f') && ['1', '0'].include?(val)
+        t_val = most_common_vals.index('t')
+        f_val = most_common_vals.index('f')
+        return (val == '1' ? most_common_freqs[t_val] : most_common_freqs[f_val])
+      end
+
       if (!most_common_vals.nil? && ind = most_common_vals.index(val))
         return most_common_freqs[ind]
       end
+
+      return 0 if n_distinct == most_common_vals.length # Not in most common vals; not present
       return 1.0 / n_distinct if n_distinct && n_distinct > 0
       return 1.0 / rowcount if n_distinct && n_distinct < 0
     end
