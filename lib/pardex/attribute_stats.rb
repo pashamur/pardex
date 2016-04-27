@@ -60,17 +60,20 @@ module Pardex
 
     def eq_selectivity(val)
       # Check for boolean queries with 1 or 0
-      if most_common_vals.length < 4 && most_common_vals.include?('f') && ['1', '0'].include?(val)
-        t_val = most_common_vals.index('t')
-        f_val = most_common_vals.index('f')
-        return (val == '1' ? most_common_freqs[t_val] : most_common_freqs[f_val])
+      if most_common_vals.is_a?(Array)
+        if most_common_vals.length < 4 && most_common_vals.include?('f') && ['1', '0'].include?(val)
+          t_val = most_common_vals.index('t')
+          f_val = most_common_vals.index('f')
+          return (val == '1' ? most_common_freqs[t_val] : most_common_freqs[f_val])
+        end
+
+        if ind = most_common_vals.index(val)
+          return most_common_freqs[ind]
+        end
+
+        return 0 if n_distinct == most_common_vals.length # Not in most common vals; not present
       end
 
-      if (!most_common_vals.nil? && ind = most_common_vals.index(val))
-        return most_common_freqs[ind]
-      end
-
-      return 0 if n_distinct == most_common_vals.length # Not in most common vals; not present
       return 1.0 / n_distinct if n_distinct && n_distinct > 0
       return 1.0 / rowcount if n_distinct && n_distinct < 0
     end

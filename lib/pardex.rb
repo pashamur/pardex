@@ -1,29 +1,14 @@
 require_relative "pardex/version"
 require_relative "pardex/table"
+require_relative "pardex/log_parser"
 require 'active_record'
 require 'pg_query'
 require 'byebug'
 
-QUERIES = [
-  "SELECT count(*) FROM users",
-  "SELECT count(*) FROM users WHERE first_name = 'Roger'",
-  "SELECT count(*) FROM messages WHERE read IS TRUE",
-  "SELECT count(*) FROM messages WHERE read IS TRUE",
-  "SELECT count(*) FROM messages WHERE read = 't'",
-  "SELECT count(*) FROM messages WHERE read IS FALSE",
-].freeze
+LOG_FILE = "/usr/local/var/postgres/pg_log/postgresql-2016-04-25_000000.log"
 
-# Desired output:
-# conditions = {
-#   'users' => {
-#     ['first_name', '=', 'Roger'] => 1
-#   },
-#   'messages' => {
-#     ['read', 'IS', true] => 2,
-#     ['read', '=', true] => 1
-#   }
-# }
-#
+QUERIES_WITH_STATS = Pardex::LogParser.new.parse(LOG_FILE)
+QUERIES = QUERIES_WITH_STATS.map{|q,i| i[:samples]}.inject(&:+)
 
 module Pardex
   @@tables = Hash.new
@@ -54,11 +39,11 @@ module Pardex
     conditions.each do |cond|
       if parsed.tables.length == 1
         table = parsed.tables.first
-        @@conditions[table][cond] ||= [0, @@tables[table].selectivity(cond[0], cond[1], cond[2])]
+        @@conditions[table][cond] ||= [0, @@tables[table].selectivity(cond[0].split(".").reverse.first, cond[1], cond[2])]
         @@conditions[table][cond][0] += 1
       else # more than 1 table
         table = get_table(cond, parsed.tables)
-        @@conditions[table][cond] ||= [0, @@tables[table].selectivity(cond[0], cond[1], cond[2])]
+        @@conditions[table][cond] ||= [0, @@tables[table].selectivity(cond[0].split(".").reverse.first, cond[1], cond[2])]
         @@conditions[table][cond][0] += 1
       end
     end
