@@ -4,18 +4,17 @@ module Pardex
   class Table
     attr_accessor :name, :connection, :statistics, :rowcount, :attributes
 
-    def initialize(model)
-      self.name = model.table_name
-      self.connection = model.connection
-      self.statistics = connection.execute "SELECT * FROM pg_stats WHERE tablename='#{model.table_name}'"
-      row_result = connection.exec_query(row_number_query)
-      self.rowcount = ("%f" % row_result.first["reltuples"]).to_i # Approximate rowcount - same as used by postgres planner
+    def initialize(table_name, connection)
+      self.name = table_name
+      self.connection = connection
+      self.statistics = connection.execute(stats_and_type_query)
+      row_result = connection.execute(row_number_query)
+      self.rowcount = row_result.first["reltuples"].to_i # Approximate rowcount - same as used by postgres planner
       self.attributes = statistics.map do |stats|
         name = stats["attname"]
-        ar_info = model.columns_hash[name]
-        ar_column_type = ar_info.cast_type.class
+        type = stats["data_type"]
 
-        {name => Attribute.new(stats, rowcount, ar_column_type, self)}
+        {name => Attribute.new(stats, rowcount, type, self)}
       end.inject(&:merge!)
     end
 
@@ -33,6 +32,15 @@ module Pardex
         FROM pg_class C
         LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
         WHERE relname = '#{self.name}'; "
+    end
+
+    def stats_and_type_query
+      "SELECT ISC.data_type, PGS.*
+       FROM pg_stats PGS
+       JOIN information_schema.columns ISC
+       ON ISC.column_name = PGS.attname
+       WHERE PGS.tablename = '#{self.name}'
+       AND ISC.table_name = '#{self.name}';"
     end
   end
 end

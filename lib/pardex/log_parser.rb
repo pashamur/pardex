@@ -3,7 +3,8 @@ require "pg_query"
 # Taken (with modifications) from pghero_logs (github)
 module Pardex
   class LogParser
-    REGEX = /duration: (\d+\.\d+) ms  execute <unnamed>: ([\s\S]+)?\Z/i
+    RAILS_4_REGEX = /duration: (\d+\.\d+) ms  execute <unnamed>: ([\s\S]+)?\Z/i
+    RAILS_2_REGEX = /duration: (\d+\.\d+) ms  statement: ([\s\S]+)?\Z/i
 
     def parse(log_file)
       active_entry = ""
@@ -40,9 +41,12 @@ module Pardex
     end
 
     def parse_entry(active_entry)
-      if (matches = active_entry.match(REGEX))
+      matches = active_entry.match(RAILS_4_REGEX)
+      matches ||= active_entry.match(RAILS_2_REGEX)
+      if matches
         # Filter out postgres / rails default queries
         return if active_entry =~ /pg_attribute|pg_type|schema_migrations|pg_class|pg_namespace/
+
         begin
           query = PgQuery.normalize(squish(matches[2].gsub(/\/\*.+/, ""))).gsub(/\?(, \?)+/, "?")
           queries[query][:count] += 1

@@ -3,10 +3,11 @@ require 'byebug'
 module Pardex
   class AttributeStats
     THRESHOLD = 0.95
-    attr_accessor :name, :null_frac, :most_common_vals, :most_common_freqs, :histogram_bounds, :n_distinct, :rowcount, :table
+    attr_accessor :name, :null_frac, :most_common_vals, :most_common_freqs, :histogram_bounds, :n_distinct, :rowcount, :table, :type
 
     def initialize(name, stats, rowcount, type, table)
       self.name = name
+      self.type = type
       self.table = table
       self.null_frac = stats['null_frac'].to_f
       self.most_common_vals = stats["most_common_vals"].gsub(/[{}]/,'').split(',') if stats["most_common_vals"]
@@ -15,7 +16,7 @@ module Pardex
       self.n_distinct = stats["n_distinct"].to_i if stats["n_distinct"]
       self.rowcount = rowcount
 
-      if type < ActiveRecord::Type::Integer
+      if type == "integer"
         self.most_common_vals = self.most_common_vals.map(&:to_i) if self.most_common_vals
         self.histogram_bounds = self.histogram_bounds.map(&:to_i) if self.histogram_bounds
       end
@@ -51,7 +52,7 @@ module Pardex
       else
         # Hijack postgres planner to give us estimate
         esc_val = val.is_a?(String) && !(['true','false','null'].include?(val.downcase)) ? "'#{val}'" : val
-        res = self.table.connection.exec_query("EXPLAIN (FORMAT JSON) SELECT * FROM #{self.table.name} WHERE #{self.table.name}.#{name} #{op} #{esc_val};")
+        res = self.table.connection.execute("EXPLAIN (FORMAT JSON) SELECT * FROM #{self.table.name} WHERE #{self.table.name}.#{name} #{op} #{esc_val};")
 
         plan_rows = JSON.parse(res.rows.first.first).first["Plan"]["Plan Rows"]
         plan_rows.to_f / rowcount
@@ -61,7 +62,7 @@ module Pardex
     def eq_selectivity(val)
       # Check for boolean queries with 1 or 0
       if most_common_vals.is_a?(Array)
-        if most_common_vals.length < 4 && most_common_vals.include?('f') && ['1', '0'].include?(val)
+        if self.type=='boolean' && ['1', '0'].include?(val)
           t_val = most_common_vals.index('t')
           f_val = most_common_vals.index('f')
           return (val == '1' ? most_common_freqs[t_val] : most_common_freqs[f_val])

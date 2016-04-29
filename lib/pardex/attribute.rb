@@ -2,10 +2,11 @@ require_relative 'attribute_stats'
 
 module Pardex
   class Attribute
-    attr_accessor :name, :stats
+    attr_accessor :name, :stats, :type
 
     def initialize(stats, rowcount, type, table)
       self.name = stats['attname']
+      self.type = type
       self.stats = AttributeStats.new(name, stats, rowcount, type, table)
     end
 
