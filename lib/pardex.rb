@@ -22,7 +22,7 @@ module Pardex
     #  @@conditions[table_name] = Hash.new
     #end
 
-    queries_with_stats = Pardex::LogParser.new.parse(opts[:log_file])
+    queries_with_stats = Pardex::LogParser.new.parse(opts[:log_file], opts[:db_name])
     queries = queries_with_stats.select{|k,v| k[0..5] == "SELECT"}.map{|q,i| i[:samples]}.inject(&:+)
 
     queries.each do |query|
