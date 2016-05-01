@@ -9,18 +9,11 @@ ALL_TABLES_QUERY = "SELECT table_schema,table_name FROM information_schema.table
 
 module Pardex
   @@tables = Hash.new
-  @@queries = Array.new
   @@conditions = Hash.new
 
   def self.run(opts)
     connection = Pardex::Connection.new(opts[:db_name], {:host => opts[:db_host], :port => opts[:db_port], :user => opts[:db_user], :password => opts[:db_password]})
     @@table_names = Set.new(connection.execute(ALL_TABLES_QUERY).map{|r| r["table_name"]})
-
-    #tables.each do |table_name|
-    #  tbl = Pardex::Table.new(table_name, connection)
-    #  @@tables[table_name] = tbl
-    #  @@conditions[table_name] = Hash.new
-    #end
 
     queries_with_stats = Pardex::LogParser.new.parse(opts[:log_file], opts[:db_name])
     queries = queries_with_stats.select{|k,v| k[0..5] == "SELECT"}.map{|q,i| i[:samples]}.inject(&:+)
@@ -38,7 +31,8 @@ module Pardex
     parsed = PgQuery.parse(query)
     parsed_tables = parsed.tables
     return if parsed_tables.length < 1
-    return if !Set.new(parsed_tables).intersect? @@table_names #Check that at least one of the tables in the query is in our working set.
+    #Check that at least one of the tables in the query is in our working set.
+    return if !Set.new(parsed_tables).intersect? @@table_names
 
     # Load tables which are relevant. -- should probably filter at log level as well.
     parsed_tables.select{|t| @@table_names.include?(t) && !@@tables.include?(t)}.each do |table|
