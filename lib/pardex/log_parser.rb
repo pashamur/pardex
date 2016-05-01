@@ -1,3 +1,4 @@
+require 'set'
 require "pg_query"
 
 # Taken (with modifications) from pghero_logs (github)

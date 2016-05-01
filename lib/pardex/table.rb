@@ -23,7 +23,7 @@ module Pardex
     end
 
     def selectivity(attribute, op, val)
-      return 0 unless attributes[attribute]
+      return 0 unless attributes && attributes[attribute]
       attributes[attribute].selectivity(op, val)
     end
 
@@ -36,8 +36,8 @@ module Pardex
 
     def stats_and_type_query
       "SELECT ISC.data_type, PGS.*
-       FROM pg_stats PGS
-       JOIN information_schema.columns ISC
+       FROM information_schema.columns ISC
+       LEFT JOIN pg_stats PGS
        ON ISC.column_name = PGS.attname
        WHERE PGS.tablename = '#{self.name}'
        AND ISC.table_name = '#{self.name}';"
