@@ -7,12 +7,12 @@ options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: pardex.rb [options]"
 
-  opts.on("-l", "--log-file", "Specify location of postgres log file"){|v| options[:log_file] = v }
-  opts.on("-d", "--db-name", "Specify database name"){|v| options[:db_name] = v }
-  opts.on("-h", "--db-host", "Specify database host"){|v| options[:db_host] = v }
-  opts.on("-p", "--db-port", "Specify database port"){|v| options[:db_port] = v.to_i }
-  opts.on("-u", "--db-username", "Specify database username"){|v| options[:db_username] = v }
-  opts.on("-P", "--db-password", "Specify database password"){|v| options[:db_password] = v }
+  opts.on("-lNAME", "--log-file=NAME", "Specify location of postgres log file"){|v| options[:log_file] = v }
+  opts.on("-dNAME", "--db-name=NAME", "Specify database name"){|v| options[:db_name] = v }
+  opts.on("-hNAME", "--db-host=NAME", "Specify database host"){|v| options[:db_host] = v }
+  opts.on("-pNAME", "--db-port=NAME", "Specify database port"){|v| options[:db_port] = v.to_i }
+  opts.on("-uNAME", "--db-username=NAME", "Specify database username"){|v| options[:db_username] = v }
+  opts.on("-PNAME", "--db-password=NAME", "Specify database password"){|v| options[:db_password] = v }
 end.parse!
 
 defaults = {
