@@ -10,13 +10,14 @@ It uses regexes to extract the queries from the postgres logs - for certain vers
 
 1. First, you have to enable logging in your postgres instance. You can follow the instructions under "Postgres Configuration" for pgBadger (reproduced here for convenience.)
 
-POSTGRESQL CONFIGURATION
+    POSTGRESQL CONFIGURATION
     You must enable and set some configuration directives in your
     postgresql.conf before starting. (You can use a value greater than 0 for log_min_duration_statement to reduce logged query volume)
-
+    ~~~
     log_statement = none
     log_min_duration_statement = 0
     log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d '
+    ~~~
 
 2. Launch and browse around your application - the resulting queries will be logged in the postgres log.
 3. Clone the repository and run ./bin/pardex, specifying the log file to be analyzed and the database host, port, username and password (the same one that your application uses when running). Output should appear on the command line. Usage below:
