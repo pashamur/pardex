@@ -23,17 +23,17 @@ It uses regexes to extract the queries from the postgres logs - for certain vers
 3. Clone the repository and run ./bin/pardex, specifying the log file to be analyzed and the database host, port, username and password (the same one that your application uses when running). Output should appear on the command line. Usage below:
 
 
-~~~
-Usage: pardex [options]
-    -l, --log-file=NAME              Specify location of postgres log file
-    -d, --db-name=NAME               Specify database name
-    -h, --db-host=NAME               Specify database host
-    -p, --db-port=NAME               Specify database port
-    -u, --db-username=NAME           Specify database username
-    -P, --db-password=NAME           Specify database password
-~~~
+    ~~~
+    Usage: pardex [options]
+        -l, --log-file=NAME              Specify location of postgres log file
+        -d, --db-name=NAME               Specify database name
+        -h, --db-host=NAME               Specify database host
+        -p, --db-port=NAME               Specify database port
+        -u, --db-username=NAME           Specify database username
+        -P, --db-password=NAME           Specify database password
+    ~~~
 
-Sample output:
+##Sample output:
 
 ~~~
 Suggesting Indexes...
