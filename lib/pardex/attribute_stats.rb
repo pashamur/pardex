@@ -51,11 +51,17 @@ module Pardex
         eq_selectivity(val) + (op == '<=' ? lt_selectivity(val) : gt_selectivity(val))
       else
         # Hijack postgres planner to give us estimate
-        esc_val = val.is_a?(String) && !(['true','false','null'].include?(val.downcase)) && op != "IN" ? "'#{val}'" : val
-        res = self.table.connection.execute("EXPLAIN (FORMAT JSON) SELECT * FROM #{self.table.name} WHERE #{self.table.name}.#{name} #{op} #{esc_val};")
+        begin
+          esc_val = val.is_a?(String) && !(['true','false','null'].include?(val.downcase)) && op != "IN" ? "'#{val}'" : val
+          res = self.table.connection.execute("EXPLAIN (FORMAT JSON) SELECT * FROM #{self.table.name} WHERE #{self.table.name}.#{name} #{op} #{esc_val};")
 
-        plan_rows = JSON.parse(res.first["QUERY PLAN"]).first["Plan"]["Plan Rows"]
-        plan_rows.to_f / rowcount
+          plan_rows = JSON.parse(res.first["QUERY PLAN"]).first["Plan"]["Plan Rows"]
+          plan_rows.to_f / rowcount
+        rescue => e
+          puts "ERROR: Failed to compute selectivity for #{name} #{op} #{val} (table = #{table.name}); Defaulting to 0."
+          puts e.inspect
+          0
+        end
       end
     end
 

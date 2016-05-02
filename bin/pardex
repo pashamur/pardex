@@ -5,7 +5,7 @@ require 'optparse'
 
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: pardex.rb [options]"
+  opts.banner = "Usage: pardex [options]"
 
   opts.on("-lNAME", "--log-file=NAME", "Specify location of postgres log file"){|v| options[:log_file] = v }
   opts.on("-dNAME", "--db-name=NAME", "Specify database name"){|v| options[:db_name] = v }

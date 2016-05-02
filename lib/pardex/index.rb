@@ -28,11 +28,27 @@ module Pardex
     end
 
     def size
-      @_result ||= table.connection.execute(self.size_query(name))
-      @_result[0]["index_size"]
+      stats["index_size"]
     end
 
-    def self.size_query(index_name)
+    def table_num_rows
+      stats["table_num_rows"]
+    end
+
+    def table_size
+      stats["table_size"]
+    end
+
+    def unique?
+      stats["unique"] == "Y" ? true : false
+    end
+
+    def stats
+      @_stats ||= table.connection.execute(stats_query)
+      @_stats[0]
+    end
+
+    def stats_query
       "
       SELECT
             t.tablename,
@@ -47,13 +63,13 @@ module Pardex
             idx_tup_read AS tuples_read,
             idx_tup_fetch AS tuples_fetched
         FROM pg_tables t
-        LEFT OUTER JOIN pg_class c ON t.tablename=c.relname
-        LEFT OUTER JOIN
+        JOIN pg_class c ON t.tablename=c.relname
+        JOIN
             ( SELECT c.relname AS ctablename, ipg.relname AS indexname, x.indnatts AS number_of_columns, idx_scan, idx_tup_read, idx_tup_fetch, indexrelname, indisunique FROM pg_index x
                    JOIN pg_class c ON c.oid = x.indrelid
                    JOIN pg_class ipg ON ipg.oid = x.indexrelid
                    JOIN pg_stat_all_indexes psai ON x.indexrelid = psai.indexrelid
-                   WHERE ipg.relname = '#{index_name}' )
+                   WHERE ipg.relname = '#{name}' )
             AS foo
             ON t.tablename = foo.ctablename
         WHERE t.schemaname='public'

@@ -77,7 +77,7 @@ module Pardex
         attribute = condition[0].split(".").reverse.first
 
         if (count > 1) && selectivity && (selectivity < 0.1 && selectivity > 0)
-          puts "Suggested Index on #{table_name}.#{attribute} WHERE #{condition.join(' ')} (selectivity: #{selectivity})"
+          puts "Suggested Index on #{table_name}.#{attribute} WHERE #{condition.join(' ')} (count: #{count}, selectivity: #{selectivity})"
 
           _, op, val = condition
           quoted_val = (val.is_a?(String) && !(['true','false','null'].include?(val.downcase)) && op != "IN" ? "'#{val}'" : val)
