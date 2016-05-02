@@ -12,14 +12,10 @@ It uses regexes to extract the queries from the postgres logs - for certain vers
 
 POSTGRESQL CONFIGURATION
     You must enable and set some configuration directives in your
-    postgresql.conf before starting.
+    postgresql.conf before starting. (You can use a value greater than 0 for log_min_duration_statement to reduce logged query volume)
 
     log_statement = none
     log_min_duration_statement = 0
-
-    Here every statement will be logged, on a busy server you may want to
-    increase this value to only log queries with a longer duration. 
-
     log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d '
 
 2. Launch and browse around your application - the resulting queries will be logged in the postgres log.
