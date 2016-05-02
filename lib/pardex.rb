@@ -2,6 +2,7 @@ require_relative "pardex/version"
 require_relative "pardex/table"
 require_relative "pardex/log_parser"
 require_relative "pardex/connection"
+require_relative "pardex/index_evaluator"
 require 'pg_query'
 require 'byebug'
 
@@ -23,8 +24,8 @@ module Pardex
     end
 
     puts "Suggesting Indexes..."
+    puts ""
     self.suggest_indexes
-    byebug
   end
 
   def self.add_query(query, connection)
@@ -41,19 +42,25 @@ module Pardex
     end
 
     conditions = parsed.simple_where_conditions
+
     conditions.each do |cond|
       if parsed.tables.length == 1
         table = parsed.tables.first
         next if !@@conditions[table]
 
-        @@conditions[table][cond] ||= [0, @@tables[table].selectivity(cond[0].split(".").reverse.first, cond[1], cond[2])]
+        selectivity = @@tables[table].selectivity(cond[0].split(".").reverse.first, cond[1], cond[2])
+
+        @@conditions[table][cond] ||= [0, selectivity, Array.new]
         @@conditions[table][cond][0] += 1
+        @@conditions[table][cond][2] << query
       else # more than 1 table
         table = get_table(cond, parsed.tables)
         next if !@@conditions[table]
 
-        @@conditions[table][cond] ||= [0, @@tables[table].selectivity(cond[0].split(".").reverse.first, cond[1], cond[2])]
+        selectivity = @@tables[table].selectivity(cond[0].split(".").reverse.first, cond[1], cond[2])
+        @@conditions[table][cond] ||= [0, selectivity, Array.new]
         @@conditions[table][cond][0] += 1
+        @@conditions[table][cond][2] << query
       end
     end
   end
@@ -66,11 +73,17 @@ module Pardex
 
   def self.suggest_indexes
     @@conditions.each do |table_name, table|
-      table.each do |condition, (count, selectivity)|
+      table.each do |condition, (count, selectivity, queries)|
         attribute = condition[0].split(".").reverse.first
 
-        if count > 1 && selectivity && (selectivity < 0.05 && selectivity > 0)
+        if (count > 1) && selectivity && (selectivity < 0.1 && selectivity > 0)
           puts "Suggested Index on #{table_name}.#{attribute} WHERE #{condition.join(' ')} (selectivity: #{selectivity})"
+
+          _, op, val = condition
+          quoted_val = (val.is_a?(String) && !(['true','false','null'].include?(val.downcase)) && op != "IN" ? "'#{val}'" : val)
+
+          index = Pardex::Index.new(@@tables[table_name], attribute, "#{attribute} #{op} #{quoted_val}")
+          eval = Pardex::IndexEvaluator.new.evaluate(index, queries.first)
         end
       end
     end
