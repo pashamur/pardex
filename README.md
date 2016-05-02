@@ -19,9 +19,21 @@ POSTGRESQL CONFIGURATION
     log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d '
 
 2. Launch and browse around your application - the resulting queries will be logged in the postgres log.
-3. Run pardex, specifying the log file to be analyzed and the database host, port, username and password (the same one that your application uses when running). Output should appear on the command line.
+3. Clone the repository and run ./bin/pardex, specifying the log file to be analyzed and the database host, port, username and password (the same one that your application uses when running). Output should appear on the command line. Usage below:
+
+
+~~~
+Usage: pardex [options]
+    -l, --log-file=NAME              Specify location of postgres log file
+    -d, --db-name=NAME               Specify database name
+    -h, --db-host=NAME               Specify database host
+    -p, --db-port=NAME               Specify database port
+    -u, --db-username=NAME           Specify database username
+    -P, --db-password=NAME           Specify database password
+~~~
 
 Sample output:
+
 ~~~
 Suggesting Indexes...
 
@@ -32,18 +44,6 @@ Suggested Index: user_accounts_id_idx_476ae0f44f WAS used. before: 0.014ms, afte
 Suggested Index on saved_profiles.user_account_id WHERE saved_profiles.user_account_id = 154212 (selectivity: 4.640801930573603e-05)
 Evaluating query SELECT count(*) AS count_all FROM "saved_profiles" WHERE (("saved_profiles"."user_account_id" = 154212 AND "saved_profiles"."stype" = 'saved' AND "saved_profiles"."watched" = 't'))
 Suggested Index: saved_profiles_user_account_id_idx_cfbfe7b576 WAS NOT used. before: 0.016ms, after: 0.019ms.
-~~~
-
-Clone the repo; the binary is in bin/pardex.
-
-~~~
-Usage: pardex [options]
-    -l, --log-file=NAME              Specify location of postgres log file
-    -d, --db-name=NAME               Specify database name
-    -h, --db-host=NAME               Specify database host
-    -p, --db-port=NAME               Specify database port
-    -u, --db-username=NAME           Specify database username
-    -P, --db-password=NAME           Specify database password
 ~~~
 
 
