@@ -34,17 +34,34 @@ It uses regexes to extract the queries from the postgres logs - for certain vers
     ~~~
 
 ##Sample output:
+Generated from running the spec in spec/pardex_spec (needs postgres to be installed and password-less access for current user on localhost on default port)
+
+The test uses a log with the following seven queries (with a count of 2, so it considers any query occuring >= 2 times for a partial index): 
+~~~
+SELECT * FROM test WHERE id = 55
+SELECT * FROM test WHERE id = 55
+SELECT * FROM test WHERE read = true
+SELECT * FROM test WHERE read = true
+SELECT * FROM test WHERE read = false
+SELECT * FROM test WHERE read = false
+SELECT * FROM test WHERE id = 68
+~~~
+
+### OUTPUT: 
 
 ~~~
+Loaded suite pardex_spec
+Started
 Suggesting Indexes...
 
-Suggested Index on user_accounts.id WHERE user_accounts.id = 154212 (selectivity: 4.238042363471465e-06)
-Evaluating query SELECT "user_accounts".id FROM "user_accounts" INNER JOIN "subscriptions_owner_user_accounts" ON "user_accounts".id = "subscriptions_owner_user_accounts".user_account_id WHERE ("user_accounts"."id" = 154212) AND ("subscriptions_owner_user_accounts".subscription_id = 9899 ) LIMIT 1
-Suggested Index: user_accounts_id_idx_476ae0f44f WAS used. before: 0.014ms, after: 0.013ms.
+Suggested Index on test.read WHERE read = true (count: 2, selectivity: 0.0333)
+Evaluating query SELECT * FROM test WHERE read = true
+Suggested Index: test_read_idx_f09554029e WAS used. before: 0.473ms, after: 0.053ms.
 
-Suggested Index on saved_profiles.user_account_id WHERE saved_profiles.user_account_id = 154212 (selectivity: 4.640801930573603e-05)
-Evaluating query SELECT count(*) AS count_all FROM "saved_profiles" WHERE (("saved_profiles"."user_account_id" = 154212 AND "saved_profiles"."stype" = 'saved' AND "saved_profiles"."watched" = 't'))
-Suggested Index: saved_profiles_user_account_id_idx_cfbfe7b576 WAS NOT used. before: 0.016ms, after: 0.019ms.
+Suggested Index on test.id WHERE id = 55 (count: 2, selectivity: 0.0001)
+Evaluating query SELECT * FROM test WHERE id = 55
+Suggested Index: test_id_idx_5ab532e9ea WAS used. before: 0.562ms, after: 0.007ms.
+
 ~~~
 
 
