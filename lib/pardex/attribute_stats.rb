@@ -68,10 +68,10 @@ module Pardex
     def eq_selectivity(val)
       # Check for boolean queries with 1 or 0
       if most_common_vals.is_a?(Array)
-        if self.type=='boolean' && ['1', '0'].include?(val)
+        if self.type=='boolean' && ['1', '0', true, false].include?(val)
           t_val = most_common_vals.index('t')
           f_val = most_common_vals.index('f')
-          return (val == '1' ? most_common_freqs[t_val] : most_common_freqs[f_val])
+          return ((val == '1' || val == true) ? most_common_freqs[t_val] : most_common_freqs[f_val])
         end
 
         if ind = most_common_vals.index(val)

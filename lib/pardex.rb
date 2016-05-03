@@ -9,6 +9,7 @@ require 'byebug'
 ALL_TABLES_QUERY = "SELECT table_schema,table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_schema,table_name;"
 
 module Pardex
+  DEFAULT_MIN_COUNT = 2
   @@tables = Hash.new
   @@conditions = Hash.new
 
@@ -16,7 +17,7 @@ module Pardex
     connection = Pardex::Connection.new(opts[:db_name], {:host => opts[:db_host], :port => opts[:db_port], :user => opts[:db_user], :password => opts[:db_password]})
     @@table_names = Set.new(connection.execute(ALL_TABLES_QUERY).map{|r| r["table_name"]})
 
-    queries_with_stats = Pardex::LogParser.new.parse(opts[:log_file], opts[:db_name])
+    queries_with_stats = Pardex::LogParser.new.parse(File.new(opts[:log_file]), opts[:db_name])
     queries = queries_with_stats.select{|k,v| k[0..5] == "SELECT"}.map{|q,i| i[:samples]}.inject(&:+)
 
     queries.each do |query|
@@ -25,7 +26,10 @@ module Pardex
 
     puts "Suggesting Indexes..."
     puts ""
-    self.suggest_indexes
+    indexes = self.suggest_indexes(opts[:min_count] || DEFAULT_MIN_COUNT)
+
+    connection.close
+    indexes
   end
 
   def self.add_query(query, connection)
@@ -71,13 +75,16 @@ module Pardex
     tables.select{|t| @@tables[t].attributes && @@tables[t].attributes.keys.include?(cond[0]) }.first
   end
 
-  def self.suggest_indexes
+  def self.suggest_indexes(min_count)
+    suggested_indexes = []
+
     @@conditions.each do |table_name, table|
       table.each do |condition, (count, selectivity, queries)|
         attribute = condition[0].split(".").reverse.first
 
-        if (count > 1) && selectivity && (selectivity < 0.1 && selectivity > 0)
+        if (count >= min_count) && selectivity && (selectivity < 0.1 && selectivity > 0)
           puts "Suggested Index on #{table_name}.#{attribute} WHERE #{condition.join(' ')} (count: #{count}, selectivity: #{selectivity})"
+          suggested_indexes << condition
 
           _, op, val = condition
           quoted_val = (val.is_a?(String) && !(['true','false','null'].include?(val.downcase)) && op != "IN" ? "'#{val}'" : val)
@@ -87,6 +94,8 @@ module Pardex
         end
       end
     end
+
+    suggested_indexes
   end
 
 end

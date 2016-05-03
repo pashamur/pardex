@@ -5,10 +5,9 @@ module Pardex
     attr_accessor :connection, :results
 
     def initialize(dbname, opts={})
-      raise 'Please specify database, host, port, and user when opening a Pardex::Connection' if dbname.nil? || !(%i{host port user}.select{|k| opts.has_key?(k)}.count == 3)
-      host = opts[:host]
-      port = opts[:port]
-      user = opts[:user]
+      host = opts[:host] || nil
+      port = opts[:port] || nil
+      user = opts[:user] || nil
 
       self.connection = PG::Connection.open(:host => host, :port => port, :dbname => dbname, :user => user)
       self.results = Hash.new
@@ -21,6 +20,10 @@ module Pardex
       self.results[query] = result
 
       result
+    end
+
+    def close
+      self.connection.close
     end
   end
 end

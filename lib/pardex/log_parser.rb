@@ -9,7 +9,7 @@ module Pardex
 
     def parse(log_file, database_name)
       active_entry = ""
-      open(log_file).each_line do |line|
+      log_file.each_line do |line|
         if line.include?(":  ")
           if active_entry
             parse_entry(active_entry, database_name)
@@ -62,7 +62,7 @@ module Pardex
     end
 
     def queries
-      @queries ||= Hash.new {|hash, key| hash[key] = {count: 0, total_time: 0, samples: Set.new} }
+      @queries ||= Hash.new {|hash, key| hash[key] = {count: 0, total_time: 0, samples: Array.new} }
     end
 
     def squish(str)

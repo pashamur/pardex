@@ -13,6 +13,7 @@ OptionParser.new do |opts|
   opts.on("-pNAME", "--db-port=NAME", "Specify database port"){|v| options[:db_port] = v.to_i }
   opts.on("-uNAME", "--db-username=NAME", "Specify database username"){|v| options[:db_username] = v }
   opts.on("-PNAME", "--db-password=NAME", "Specify database password"){|v| options[:db_password] = v }
+  opts.on("-cNAME", "--min-count=NAME", "Minimum number of queries for a condition to be considered for a partial index (default: 2)"){|v| options[:min_count] = v.to_i }
 end.parse!
 
 defaults = {
