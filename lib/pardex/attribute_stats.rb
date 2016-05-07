@@ -42,24 +42,32 @@ module Pardex
       elsif op == '='
         eq_selectivity(val)
       elsif op == '>'
-        gt_selectivity(val)
+        !(histogram_bounds.nil?) ? gt_selectivity(val) : get_selectivity_from_postgres(op, val)
       elsif op == '<'
-        lt_selectivity(val)
+        !(histogram_bounds.nil?) ? lt_selectivity(val) : get_selectivity_from_postgres(op, val)
       elsif op == '<=' || op == '>='
-        eq_selectivity(val) + (op == '<=' ? lt_selectivity(val) : gt_selectivity(val))
-      else
-        # Hijack postgres planner to give us estimate
-        begin
-          esc_val = val.is_a?(String) && !(['true','false','null'].include?(val.downcase)) && op != "IN" ? "'#{val}'" : val
-          res = self.table.connection.execute("EXPLAIN (FORMAT JSON) SELECT * FROM #{self.table.name} WHERE #{self.table.name}.#{name} #{op} #{esc_val};")
-
-          plan_rows = JSON.parse(res.first["QUERY PLAN"]).first["Plan"]["Plan Rows"]
-          plan_rows.to_f / rowcount
-        rescue => e
-          puts "ERROR: Failed to compute selectivity for #{name} #{op} #{val} (table = #{table.name}); Defaulting to 0."
-          puts e.inspect
-          0
+        if histogram_bounds.nil?
+          get_selectivity_from_postgres(op, val)
+        else
+          eq_selectivity(val) + (op == '<=' ? lt_selectivity(val) : gt_selectivity(val))
         end
+      else
+        get_selectivity_from_postgres(op, val)
+      end
+    end
+
+    def get_selectivity_from_postgres(op, val)
+      # Hijack postgres planner to give us estimate
+      begin
+        esc_val = val.is_a?(String) && !(['true','false','null'].include?(val.downcase)) && op != "IN" ? "'#{val}'" : val
+        res = self.table.connection.execute("EXPLAIN (FORMAT JSON) SELECT * FROM #{self.table.name} WHERE #{self.table.name}.#{name} #{op} #{esc_val};")
+
+        plan_rows = JSON.parse(res.first["QUERY PLAN"]).first["Plan"]["Plan Rows"]
+        plan_rows.to_f / rowcount
+      rescue => e
+        puts "ERROR: Failed to compute selectivity for #{name} #{op} #{val} (table = #{table.name}); Defaulting to 0."
+        puts e.inspect
+        0
       end
     end
 
@@ -81,6 +89,7 @@ module Pardex
 
       return 1.0 / n_distinct if n_distinct && n_distinct > 0
       return 1.0 / rowcount if n_distinct && n_distinct < 0
+      return get_selectivity_from_postgres('=', val)
     end
 
     def gt_selectivity(val)
