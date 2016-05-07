@@ -40,7 +40,7 @@ class PardexTest < Test::Unit::TestCase
 
   def test_pardex
     begin
-      indexes = Pardex.run(:db_name => 'pardex_spec', :log_file => @file.path)
+      indexes = Pardex.run(:db_name => 'pardex_spec', :log_file => @file.path, :evaluate => true)
       assert_equal([['id', '=', 55], ['read', '=', true]].to_set, indexes.to_set)
     ensure
       @connection.close if @connection
