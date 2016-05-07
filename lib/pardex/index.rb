@@ -27,6 +27,10 @@ module Pardex
       "DROP INDEX CONCURRENTLY #{name}"
     end
 
+    def representative_query
+      "SELECT COUNT(*) FROM #{table.name} WHERE #{condition}"
+    end
+
     def size
       stats["index_size"]
     end

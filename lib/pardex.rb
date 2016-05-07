@@ -103,7 +103,7 @@ module Pardex
 
           if evaluate
             index = Pardex::Index.new(@@tables[table_name], attribute, "#{attribute} #{op} #{quoted_val}")
-            eval = Pardex::IndexEvaluator.new.percent_speed_improvement(index, "SELECT * FROM #{table_name} WHERE #{condition.join(' ')};")
+            eval = Pardex::IndexEvaluator.new.percent_speed_improvement(index, index.representative_query)
           end
 
           indexes << SuggestedIndex.new(table_name, attribute, condition[1], condition[2], count, selectivity.round(5), *eval)
