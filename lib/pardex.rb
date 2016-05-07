@@ -4,6 +4,7 @@ require_relative "pardex/log_parser"
 require_relative "pardex/connection"
 require_relative "pardex/index_evaluator"
 require 'pg_query'
+require_relative "pardex/pg_query_extensions"
 require 'byebug'
 require 'table_print'
 
