@@ -29,7 +29,7 @@ module Pardex
     def parse_entry(active_entry, database_name)
       matches = active_entry.match(RAILS_4_REGEX)
       matches ||= active_entry.match(RAILS_2_REGEX)
-      if matches && active_entry.include?("db=#{database_name} ")
+      if matches && active_entry.include?("db=#{database_name}")
         # Filter out postgres / rails default queries
         return if active_entry =~ /pg_attribute|pg_type|schema_migrations|pg_class|pg_namespace/
 
