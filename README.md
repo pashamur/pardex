@@ -54,11 +54,13 @@ SELECT * FROM test WHERE id = 68
 ### OUTPUT: 
 
 The evaluation statistics (USED, BEFORE, AFTER, SPEEDUP) are only reported if --evaluate is passed into the binary. Currently, evaluations are done on the query `SELECT * FROM #{index_table} WHERE #{partial index condition}`.
-    - USED represents whether the partial index was used when evaluating the above query
-    - BEFORE represents the average query runtime WITHOUT the partial index (in ms)
-    - AFTER represents the average query runtime WITH the partial index (in ms)
-    - SPEEDUP represents the speedup (hence a value of 10 would represent 10x speedup for the above query). Values less than one actually hurt the runtime of the query.
 
+    - USED    whether the partial index was used when evaluating the above query
+    - BEFORE: average query runtime WITHOUT the partial index (in ms)
+    - AFTER:  average query runtime WITH the partial index (in ms)
+    - SPEEDUP the speedup (a value of 10 would represent 10x speedup for the above query)
+
+The queries below see significant speedup because there are no indexes on the test table. With indexes, the improvements would be usually be more modest.
 ~~~
 Loaded suite pardex_spec
 Started
