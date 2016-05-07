@@ -18,8 +18,15 @@ module Pardex
     connection = Pardex::Connection.new(opts[:db_name], {:host => opts[:db_host], :port => opts[:db_port], :user => opts[:db_user], :password => opts[:db_password]})
     @@table_names = Set.new(connection.execute(ALL_TABLES_QUERY).map{|r| r["table_name"]})
 
+    puts "Parsing log file: #{opts[:log_file]}"
+    puts ""
+
     queries_with_stats = Pardex::LogParser.new.parse(File.new(opts[:log_file]), opts[:db_name])
-    queries = queries_with_stats.select{|k,v| k[0..5] == "SELECT"}.map{|q,i| i[:samples]}.inject(&:+)
+    select_queries = queries_with_stats.select{|k,v| k[0..5] == "SELECT"}
+    queries = select_queries.map{|q,i| i[:samples]}.inject(&:+)
+
+    puts "Found #{queries.count} select queries in the log file, of which #{select_queries.count} are distinct when normalized and de-duplicated."
+    puts ""
 
     queries.each do |query|
       add_query(query, connection)
