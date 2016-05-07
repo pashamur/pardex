@@ -8,8 +8,9 @@ module Pardex
       host = opts[:host] || nil
       port = opts[:port] || nil
       user = opts[:user] || nil
+      user = opts[:password] || nil
 
-      self.connection = PG::Connection.open(:host => host, :port => port, :dbname => dbname, :user => user)
+      self.connection = PG::Connection.open(:host => host, :port => port, :dbname => dbname, :user => user, :password => password)
       self.results = Hash.new
     end
 
