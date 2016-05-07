@@ -8,7 +8,6 @@ module Pardex
 
     def evaluate(index, query)
       self.index = index
-      puts "Evaluating query #{query}"
 
       # Get query timing without index
       before_time = get_average_query_time(query).round(3)
@@ -20,9 +19,15 @@ module Pardex
 
       index.drop!
 
-      puts "Suggested Index: #{index.name} #{index_used ? 'WAS' : 'WAS NOT'} used. before: #{before_time}ms, after: #{after_time}ms. "
-      puts ""
       [before_time, after_time, index_used]
+    end
+
+    def percent_speed_improvement(index, query)
+      before, after, used = evaluate(index, query)
+      improvement = (before/after).round(3)
+
+      return ['N', nil, nil, nil] unless used
+      return ['Y', before, after, improvement]
     end
 
     def get_average_query_time(query)

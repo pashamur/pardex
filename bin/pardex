@@ -14,6 +14,8 @@ OptionParser.new do |opts|
   opts.on("-uNAME", "--db-username=NAME", "Specify database username"){|v| options[:db_username] = v }
   opts.on("-PNAME", "--db-password=NAME", "Specify database password"){|v| options[:db_password] = v }
   opts.on("-cNAME", "--min-count=NAME", "Minimum number of queries for a condition to be considered for a partial index (default: 2)"){|v| options[:min_count] = v.to_i }
+  opts.on("-e", "--evaluate", "Whether to run index evaluation on each resulting index"){|v| options[:evaluate] = 1 }
+  opts.on("-f", "--filter-id", "Filter out suggestions on likely id columns (matching _id or .id or ^id$)"){|v| options[:filter_id] = 1 }
 end.parse!
 
 defaults = {

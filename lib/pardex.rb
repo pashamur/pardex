@@ -5,6 +5,7 @@ require_relative "pardex/connection"
 require_relative "pardex/index_evaluator"
 require 'pg_query'
 require 'byebug'
+require 'table_print'
 
 ALL_TABLES_QUERY = "SELECT table_schema,table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_schema,table_name;"
 
@@ -26,7 +27,7 @@ module Pardex
 
     puts "Suggesting Indexes..."
     puts ""
-    indexes = self.suggest_indexes(opts[:min_count] || DEFAULT_MIN_COUNT)
+    indexes = self.suggest_indexes(opts[:min_count] || DEFAULT_MIN_COUNT, opts[:evaluate], opts[:filter_id])
 
     connection.close
     indexes
@@ -75,25 +76,43 @@ module Pardex
     tables.select{|t| @@tables[t].attributes && @@tables[t].attributes.keys.include?(cond[0]) }.first
   end
 
-  def self.suggest_indexes(min_count)
+  SuggestedIndex = Struct.new(:table, :attribute, :op, :value, :count, :selectivity, :used, :before, :after, :speedup)
+
+  def self.suggest_indexes(min_count, evaluate = false, filter_id = false)
     suggested_indexes = []
+    indexes = []
 
     @@conditions.each do |table_name, table|
       table.each do |condition, (count, selectivity, queries)|
         attribute = condition[0].split(".").reverse.first
 
         if (count >= min_count) && selectivity && (selectivity < 0.1 && selectivity > 0)
-          puts "Suggested Index on #{table_name}.#{attribute} WHERE #{condition.join(' ')} (count: #{count}, selectivity: #{selectivity})"
+          next if filter_id && (attribute =~ /_id/ || attribute == 'id')
+          puts "Suggested Index on #{table_name}.#{attribute} WHERE #{condition.join(' ')} (count: #{count}, selectivity: #{selectivity.round(3)})"
           suggested_indexes << condition
 
           _, op, val = condition
           quoted_val = (val.is_a?(String) && !(['true','false','null'].include?(val.downcase)) && op != "IN" ? "'#{val}'" : val)
 
-          index = Pardex::Index.new(@@tables[table_name], attribute, "#{attribute} #{op} #{quoted_val}")
-          eval = Pardex::IndexEvaluator.new.evaluate(index, queries.first)
+          if evaluate
+            index = Pardex::Index.new(@@tables[table_name], attribute, "#{attribute} #{op} #{quoted_val}")
+            eval = Pardex::IndexEvaluator.new.percent_speed_improvement(index, "SELECT * FROM #{table_name} WHERE #{condition.join(' ')};")
+          end
+
+          indexes << SuggestedIndex.new(table_name, attribute, condition[1], condition[2], count, selectivity.round(5), *eval)
         end
       end
     end
+
+    puts ""
+
+    if evaluate
+      tp indexes.sort_by{|index| [-index.count, index.selectivity] }
+    else
+      tp indexes.sort_by{|index| [-index.count, index.selectivity] }, :table, :attribute, :op, :value, :count, :selectivity
+    end
+
+    puts ""
 
     suggested_indexes
   end
