@@ -38,29 +38,7 @@ Usage: pardex [options]
 ~~~
 
 ##Sample output:
-Generated from running the spec in spec/pardex_spec (needs postgres to be installed and password-less access for current user on localhost on default port)
 
-The test uses a log with the following seven queries (with a count of 2, so it considers any query occuring >= 2 times for a partial index): 
-~~~
-SELECT * FROM test WHERE id = 55
-SELECT * FROM test WHERE id = 55
-SELECT * FROM test WHERE read = true
-SELECT * FROM test WHERE read = true
-SELECT * FROM test WHERE read = false
-SELECT * FROM test WHERE read = false
-SELECT * FROM test WHERE id = 68
-~~~
-
-### OUTPUT: 
-
-The evaluation statistics (USED, BEFORE, AFTER, SPEEDUP) are only reported if --evaluate is passed into the binary. Currently, evaluations are done on the query `SELECT * FROM #{index_table} WHERE #{partial index condition}`.
-
-    - USED    whether the partial index was used when evaluating the above query
-    - BEFORE: average query runtime WITHOUT the partial index (in ms)
-    - AFTER:  average query runtime WITH the partial index (in ms)
-    - SPEEDUP the speedup (a value of 10 would represent 10x speedup for the above query)
-
-The queries below see significant speedup because there are no indexes on the test table. With indexes, the improvements would be usually be more modest.
 ~~~
 Loaded suite pardex_spec
 Started
@@ -74,6 +52,29 @@ TABLE | ATTRIBUTE | OP | VALUE | COUNT | SELECTIVITY | USED | BEFORE | AFTER | S
 test  | id        | =  | 55    | 2     | 0.0001      | Y    | 0.712  | 0.007 | 101.714
 test  | read      | =  | true  | 2     | 0.0333      | Y    | 0.581  | 0.054 | 10.759
 ~~~
+
+
+Note: The output was generated from running the spec in spec/pardex_spec (needs postgres to be installed and password-less access for current user on localhost on default port)
+
+The test uses a log with the following seven queries (with a count of 2, so it considers any query occuring >= 2 times for a partial index): 
+~~~
+SELECT * FROM test WHERE id = 55
+SELECT * FROM test WHERE id = 55
+SELECT * FROM test WHERE read = true
+SELECT * FROM test WHERE read = true
+SELECT * FROM test WHERE read = false
+SELECT * FROM test WHERE read = false
+SELECT * FROM test WHERE id = 68
+~~~
+
+The evaluation statistics (USED, BEFORE, AFTER, SPEEDUP) are only reported if --evaluate is passed into the binary. Currently, evaluations are done on the query `SELECT * FROM #{index_table} WHERE #{partial index condition}`.
+
+    - USED    whether the partial index was used when evaluating the above query
+    - BEFORE: average query runtime WITHOUT the partial index (in ms)
+    - AFTER:  average query runtime WITH the partial index (in ms)
+    - SPEEDUP the speedup (a value of 10 would represent 10x speedup for the above query)
+
+The queries in the sample data see significant speedup (10-100x) because there are no indexes on the test table. With indexes, the improvements would be usually be more modest.
 
 
 ## Contributing
