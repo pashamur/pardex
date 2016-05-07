@@ -20,8 +20,7 @@ It uses regexes to extract the queries from the postgres logs - for certain vers
     ~~~
 
 2. Launch and browse around your application - the resulting queries will be logged in the postgres log.
-3. Clone the https://github.com/pashamur/pg_query fork and install that pg_query on your system (gem build pg_query.gemspec, gem install pg_query-0.9.1.gem) (there's an additional method called simple_where_conditions, which is not present in the original gem)
-4. Clone the repository and run ./bin/pardex, specifying the log file to be analyzed and the database host, port, username and password (the same one that your application uses when running). Output should appear on the command line. Usage below:
+3. Clone the repository and run ./bin/pardex, specifying the log file to be analyzed and the database host, port, username and password (the same one that your application uses when running). Output should appear on the command line. Usage below:
 
 
 ~~~
