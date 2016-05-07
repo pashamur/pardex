@@ -5,7 +5,6 @@ require_relative "pardex/connection"
 require_relative "pardex/index_evaluator"
 require 'pg_query'
 require_relative "pardex/pg_query_extensions"
-require 'byebug'
 require 'table_print'
 
 ALL_TABLES_QUERY = "SELECT table_schema,table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_schema,table_name;"

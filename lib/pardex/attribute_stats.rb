@@ -1,5 +1,3 @@
-require 'byebug'
-
 module Pardex
   class AttributeStats
     THRESHOLD = 0.95
