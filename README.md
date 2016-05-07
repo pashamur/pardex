@@ -24,15 +24,18 @@ It uses regexes to extract the queries from the postgres logs - for certain vers
 4. Clone the repository and run ./bin/pardex, specifying the log file to be analyzed and the database host, port, username and password (the same one that your application uses when running). Output should appear on the command line. Usage below:
 
 
-    ~~~
-    Usage: pardex [options]
-        -l, --log-file=NAME              Specify location of postgres log file
-        -d, --db-name=NAME               Specify database name
-        -h, --db-host=NAME               Specify database host
-        -p, --db-port=NAME               Specify database port
-        -u, --db-username=NAME           Specify database username
-        -P, --db-password=NAME           Specify database password
-    ~~~
+~~~
+Usage: pardex [options]
+-l, --log-file=NAME              Specify location of postgres log file
+-d, --db-name=NAME               Specify database name
+-h, --db-host=NAME               Specify database host
+-p, --db-port=NAME               Specify database port
+-u, --db-username=NAME           Specify database username
+-P, --db-password=NAME           Specify database password
+-c, --min-count=NAME             Minimum number of queries for a condition to be considered for a partial index (default: 2)
+-e, --evaluate                   Whether to run index evaluation on each resulting index
+-f, --filter-id                  Filter out suggestions on likely id columns (matching _id or .id or ^id$)
+~~~
 
 ##Sample output:
 Generated from running the spec in spec/pardex_spec (needs postgres to be installed and password-less access for current user on localhost on default port)
@@ -50,19 +53,24 @@ SELECT * FROM test WHERE id = 68
 
 ### OUTPUT: 
 
+The evaluation statistics (USED, BEFORE, AFTER, SPEEDUP) are only reported if --evaluate is passed into the binary. Currently, evaluations are done on the query `SELECT * FROM #{index_table} WHERE #{partial index condition}`.
+    - USED represents whether the partial index was used when evaluating the above query
+    - BEFORE represents the average query runtime WITHOUT the partial index (in ms)
+    - AFTER represents the average query runtime WITH the partial index (in ms)
+    - SPEEDUP represents the speedup (hence a value of 10 would represent 10x speedup for the above query). Values less than one actually hurt the runtime of the query.
+
 ~~~
 Loaded suite pardex_spec
 Started
 Suggesting Indexes...
 
-Suggested Index on test.read WHERE read = true (count: 2, selectivity: 0.0333)
-Evaluating query SELECT * FROM test WHERE read = true
-Suggested Index: test_read_idx_f09554029e WAS used. before: 0.473ms, after: 0.053ms.
+Suggested Index on test.read WHERE read = true (count: 2, selectivity: 0.033)
+Suggested Index on test.id WHERE id = 55 (count: 2, selectivity: 0.0)
 
-Suggested Index on test.id WHERE id = 55 (count: 2, selectivity: 0.0001)
-Evaluating query SELECT * FROM test WHERE id = 55
-Suggested Index: test_id_idx_5ab532e9ea WAS used. before: 0.562ms, after: 0.007ms.
-
+TABLE | ATTRIBUTE | OP | VALUE | COUNT | SELECTIVITY | USED | BEFORE | AFTER | SPEEDUP
+------|-----------|----|-------|-------|-------------|------|--------|-------|--------
+test  | id        | =  | 55    | 2     | 0.0001      | Y    | 0.712  | 0.007 | 101.714
+test  | read      | =  | true  | 2     | 0.0333      | Y    | 0.581  | 0.054 | 10.759
 ~~~
 
 
